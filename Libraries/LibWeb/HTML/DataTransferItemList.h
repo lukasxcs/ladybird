@@ -27,6 +27,10 @@ public:
     WebIDL::ExceptionOr<GC::Ptr<DataTransferItem>> add(String const& data, String const& type);
     GC::Ptr<DataTransferItem> add(GC::Ref<FileAPI::File>);
 
+    void remove(unsigned long index) const;
+
+    // https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransferitemlist-clear
+    void clear() const { while (length() > 0) remove(0); }
 private:
     DataTransferItemList(JS::Realm&, GC::Ref<DataTransfer>);
 

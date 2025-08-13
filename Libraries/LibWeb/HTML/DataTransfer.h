@@ -54,6 +54,8 @@ public:
 
     ReadonlySpan<String> types() const;
     String get_data(String const& format) const;
+    void set_data(String const& format, String data);
+    void clear_data(Optional<String> format);
     GC::Ref<FileAPI::FileList> files() const;
 
     Optional<DragDataStore::Mode> mode() const;
@@ -64,6 +66,8 @@ public:
     GC::Ref<DataTransferItem> item(size_t index) const;
     DragDataStoreItem const& drag_data(size_t index) const;
     size_t length() const;
+    void remove_item_at(size_t const index) const { m_associated_drag_data_store->remove_item_at(index); }
+
 
 private:
     DataTransfer(JS::Realm&, NonnullRefPtr<DragDataStore>);

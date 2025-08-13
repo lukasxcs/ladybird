@@ -180,6 +180,101 @@ String DataTransfer::get_data(String const& format_argument) const
     return MUST(String::from_utf8(result));
 }
 
+// https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransfer-setdata
+void DataTransfer::set_data(String const& format, String data)
+{
+    // 1. If the DataTransfer object is no longer associated with a drag data store, return. Nothing happens.
+    if (!m_associated_drag_data_store) {
+        return;
+    }
+
+    // 2. If the drag data store's mode is not the read/write mode, return. Nothing happens.
+    if (m_associated_drag_data_store->mode() != DragDataStore::Mode::ReadWrite) {
+        return;
+    }
+
+    // 3. Let format be the first argument, converted to ASCII lowercase.
+    auto format_ = format.to_ascii_lowercase();
+
+    // 4. If format equals "text", change it to "text/plain".
+    //    If format equals "url", change it to "text/uri-list".
+    if (format_ == "text"sv) {
+        format_ = "text/plain"_string;
+    } else if (format == "url"sv) {
+        format_ = "text/uri-list"_string;
+    }
+
+    // 5. Remove the item in the drag data store item list whose kind is text and whose type string is equal to format, if there is one.
+    auto item_list = m_associated_drag_data_store->item_list();
+    for (size_t i = 0; i < item_list.size(); ++i) {
+        if (item_list[i].kind == DragDataStoreItem::Kind::Text && item_list[i].type_string == format) {
+            m_associated_drag_data_store->remove_item_at(i);
+            break;
+        }
+    }
+
+    // 6. Add an item to the drag data store item list
+    // whose kind is text, whose type string is equal to format, and whose data is the string given by the method's second argument.
+    DragDataStoreItem item {};
+    item.kind = DragDataStoreItem::Kind::Text;
+    item.type_string = format;
+    item.data = data.to_byte_string().to_byte_buffer();
+    m_associated_drag_data_store->add_item(item);
+
+    update_data_transfer_types_list();
+}
+
+// https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransfer-cleardata
+void DataTransfer::clear_data(Optional<String> format)
+{
+    // If the DataTransfer object is no longer associated with a drag data store, return. Nothing happens.
+    if (!m_associated_drag_data_store) {
+        return;
+    }
+
+    // If the drag data store's mode is not the read/write mode, return. Nothing happens.
+    if (m_associated_drag_data_store->mode() != DragDataStore::Mode::ReadWrite) {
+        return;
+    }
+
+    // If the method was called with no arguments, remove each item in the drag data store item list whose kind is Plain Unicode string, and return.
+    if (format->is_empty()) {
+        // FIXME: Check for Plain Unicode string.
+        // For now, we just remove all text items.
+        auto item_list = m_associated_drag_data_store->item_list();
+        for (size_t i = 0; i < item_list.size();) {
+            if (item_list[i].kind == DragDataStoreItem::Kind::Text)
+                this->remove_item_at(i);
+        }
+        update_data_transfer_types_list();
+        return;
+    }
+
+    // Set format to format, converted to ASCII lowercase.
+    auto format_ = format->to_ascii_lowercase();
+
+    // If format equals "text", change it to "text/plain".
+    if (format_ == "text"sv) {
+        format_ = "text/plain"_string;
+    }
+
+    // If format equals "url", change it to "text/uri-list".
+    if (format_ == "url"sv) {
+        format_ = "text/uri-list"_string;
+    }
+
+    // Remove the item in the drag data store item list whose kind is text and whose type string is equal to format, if there is one.
+    auto item_list = m_associated_drag_data_store->item_list();
+    for (size_t i = 0; i < item_list.size(); ++i) {
+        if (item_list[i].kind == DragDataStoreItem::Kind::Text && item_list[i].type_string == format_) {
+            m_associated_drag_data_store->remove_item_at(i);
+            break;
+        }
+    }
+
+    update_data_transfer_types_list();
+}
+
 // https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransfer-files
 GC::Ref<FileAPI::FileList> DataTransfer::files() const
 {

@@ -50,6 +50,7 @@ public:
     ReadonlySpan<DragDataStoreItem> item_list() const { return m_item_list; }
     size_t size() const { return m_item_list.size(); }
     bool has_text_item() const;
+    void remove_item_at(size_t const index) { m_item_list.remove(index); };
 
     Mode mode() const { return m_mode; }
     void set_mode(Mode mode) { m_mode = mode; }

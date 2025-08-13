@@ -110,6 +110,24 @@ GC::Ptr<DataTransferItem> DataTransferItemList::add(GC::Ref<FileAPI::File> file)
     return item;
 }
 
+// https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransferitemlist-remove
+void DataTransferItemList::remove(unsigned long index) const
+{
+    // 1. If the DataTransferItemList object is not in the read/write mode, throw an "InvalidStateError" DOMException.
+    if (m_data_transfer->mode() != DragDataStore::Mode::ReadWrite) {
+        auto error = MUST(String::formatted("Cannot remove item at index {} from DataTransferItemList: not in read/write mode", index));
+        WebIDL::InvalidStateError::create(realm(), error);
+    }
+
+    // 2. If the drag data store does not contain an indexth item, then return.
+    if (index >= m_data_transfer->length()) {
+        return;
+    }
+
+    // 3. Remove the indexth item from the drag data store.
+    m_data_transfer->remove_item_at(index);
+}
+
 // https://html.spec.whatwg.org/multipage/dnd.html#dom-datatransferitemlist-item
 Optional<JS::Value> DataTransferItemList::item_value(size_t index) const
 {
