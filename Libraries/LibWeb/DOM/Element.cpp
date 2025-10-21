@@ -4002,8 +4002,10 @@ bool Element::not_rendered() const
 // https://drafts.csswg.org/css-view-transitions-1/#document-scoped-view-transition-name
 Optional<FlyString> Element::document_scoped_view_transition_name()
 {
-    // To get the document-scoped view transition name for an Element element:
+    if (not_rendered())
+        return {};
 
+    // To get the document-scoped view transition name for an Element element:
     // 1. Let scopedViewTransitionName be the computed value of view-transition-name for element.
     auto scoped_view_transition_name = computed_properties()->view_transition_name();
 
